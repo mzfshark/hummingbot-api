@@ -163,9 +163,24 @@ app = FastAPI(
 )
 
 # Add CORS middleware
+# Avoid using a wildcard '*' for allow_origins as it is insecure.
+# Use a explicit list of allowed origins and allow additional origins from settings if provided.
+allowed_origins = [
+    "http://localhost:5174",  # Axodus frontend dev
+    "http://localhost:8501",  # Dashboard
+    "https://app.axodus.finance",  # Axodus production
+]
+
+# Extend allowed_origins from settings.app.allowed_origins if available
+extra_origins = getattr(settings.app, "allowed_origins", [])
+if isinstance(extra_origins, (list, tuple)):
+    for origin in extra_origins:
+        if origin and origin not in allowed_origins:
+            allowed_origins.append(origin)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Modify in production to specific origins
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
