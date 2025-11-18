@@ -7,6 +7,8 @@ from services.accounts_service import AccountsService
 from services.market_data_feed_manager import MarketDataFeedManager
 from deps import get_accounts_service
 from models import AddTokenRequest
+from utils.hummingbot_api_config_adapter import HummingbotAPIConfigAdapter
+from pydantic import SecretStr
 
 router = APIRouter(tags=["Connectors"], prefix="/connectors")
 
@@ -34,6 +36,46 @@ async def get_connector_config_map(connector_name: str, accounts_service: Accoun
         List of configuration field names required for the connector
     """
     return accounts_service.get_connector_config_map(connector_name)
+
+
+@router.get("/{connector_name}/config-schema")
+async def get_connector_config_schema(connector_name: str):
+    """
+    Get configuration schema for a specific connector, including which fields are secure.
+
+    Args:
+        connector_name: Name of the connector to get config schema for
+
+    Returns:
+        List of objects with field metadata: { name: str, is_secure: bool }
+    """
+    # Build adapter for connector config to introspect fields
+    config_adapter = HummingbotAPIConfigAdapter(AllConnectorSettings.get_connector_config_keys(connector_name))
+
+    schema: List[Dict[str, object]] = []
+
+    # Prefer Pydantic v2 model_fields, fallback to __fields__ if needed
+    try:
+        fields_iter = config_adapter.hb_config.model_fields.items()
+        use_model_fields = True
+    except Exception:
+        fields_iter = config_adapter.hb_config.__fields__.items()  # type: ignore[attr-defined]
+        use_model_fields = False
+
+    for name, field in fields_iter:
+        if name == "connector":
+            continue
+        try:
+            annotation = field.annotation if use_model_fields else field.type_  # type: ignore[attr-defined]
+            is_secure = annotation == SecretStr
+        except Exception:
+            is_secure = False
+        schema.append({
+            "name": name,
+            "is_secure": is_secure,
+        })
+
+    return schema
 
 
 @router.get("/{connector_name}/trading-rules")

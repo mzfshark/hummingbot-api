@@ -152,6 +152,35 @@ setup_connector(
 
 ---
 
+#### Connector Config Schema (Direct API)
+When building UIs dynamically, use the schema endpoint to know which fields are secure (mask as password):
+
+```bash
+curl -u admin:admin http://localhost:8000/connectors/binance/config-schema
+# -> [{"name":"binance_api_key","is_secure":true}, {"name":"binance_api_secret","is_secure":true}, ...]
+```
+
+Pair with the config map if you only need field names:
+
+```bash
+curl -u admin:admin http://localhost:8000/connectors/binance/config-map
+# -> ["binance_api_key", "binance_api_secret", ...]
+```
+
+To save credentials:
+
+```bash
+curl -u admin:admin -X POST \
+    http://localhost:8000/accounts/add-credential/master_account/binance \
+    -H "Content-Type: application/json" \
+    -d '{
+        "binance_api_key": "...",
+        "binance_api_secret": "..."
+    }'
+```
+
+---
+
 ### Market Data
 
 #### `get_prices` - Latest Market Prices
