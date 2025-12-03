@@ -185,7 +185,7 @@ echo ""
 echo -e "${GREEN}🐳 Starting services (API, EMQX, PostgreSQL)...${NC}"
 
 # Start all services (MCP and Dashboard are optional - see docker-compose.yml)
-docker compose up -d &
+docker-compose up -d &
 docker pull hummingbot/hummingbot:latest &
 
 # Wait for both operations to complete
@@ -246,7 +246,7 @@ else
     echo -e "${YELLOW}Troubleshooting steps:${NC}"
     echo "1. Check PostgreSQL logs: docker logs hummingbot-postgres"
     echo "2. Verify container status: docker ps -a | grep postgres"
-    echo "3. Try removing old volumes: docker compose down -v && docker compose up emqx postgres -d"
+    echo "3. Try removing old volumes: docker-compose down -v && docker-compose up emqx postgres -d"
     echo "4. Manually verify database: docker exec -it hummingbot-postgres psql -U postgres"
     echo ""
 fi
@@ -309,9 +309,9 @@ fi
 echo ""
 
 echo -e "${PURPLE}💡 Tips:${NC}"
-echo "  • View logs: docker compose logs -f"
-echo "  • Stop services: docker compose down"
-echo "  • Restart services: docker compose restart"
+echo "  • View logs: docker-compose logs -f"
+echo "  • Stop services: docker-compose down"
+echo "  • Restart services: docker-compose restart"
 echo ""
 
 echo -e "${GREEN}Ready to start trading! 🤖💰${NC}"

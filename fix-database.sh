@@ -21,7 +21,7 @@ if ! docker ps | grep -q hummingbot-postgres; then
     echo -e "${RED}❌ PostgreSQL container is not running!${NC}"
     echo ""
     echo -e "${YELLOW}Starting PostgreSQL container...${NC}"
-    docker compose up postgres -d
+    docker-compose up postgres -d
     sleep 5
 fi
 
@@ -143,5 +143,5 @@ echo ""
 echo -e "${YELLOW}You can now start the API with:${NC}"
 echo "  make run"
 echo "  or"
-echo "  docker compose up -d"
+echo "  docker-compose up -d"
 echo ""
