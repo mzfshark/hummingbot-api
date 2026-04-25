@@ -16,6 +16,12 @@ class AsyncDatabaseManager:
         if database_url.startswith("postgresql://"):
             database_url = database_url.replace("postgresql://", "postgresql+asyncpg://")
 
+        # For PostgreSQL connections, include timeout settings.
+        # SQLite does not support these arguments.
+        connect_args = {}
+        if database_url.startswith("postgresql"):
+            connect_args = {"command_timeout": 60}
+
         self.engine = create_async_engine(
             database_url,
             # Connection pool settings for async
@@ -27,11 +33,8 @@ class AsyncDatabaseManager:
             # Engine settings
             echo=False,  # Set to True for SQL query logging
             echo_pool=False,  # Set to True for connection pool logging
-            # Connection arguments for asyncpg
-            connect_args={
-                "server_settings": {"application_name": "hummingbot-api"},
-                "command_timeout": 60,
-            }
+            # Connection arguments (only for PostgreSQL)
+            connect_args=connect_args,
         )
         self.async_session = async_sessionmaker(
             self.engine,

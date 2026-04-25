@@ -12,18 +12,19 @@
 services:
   hummingbot-api:
     container_name: hummingbot-api
-    image: hummingbot/hummingbot-api:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "8000:8000"
     volumes:
       - ./bots:/hummingbot-api/bots
       - /var/run/docker.sock:/var/run/docker.sock
     env_file:
-      - .env
+      - .env.hummingbot
     environment:
       # Override specific values for Docker networking
       - BROKER_HOST=emqx
-      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
       - GATEWAY_URL=http://host.docker.internal:15888
     extra_hosts:
       # Map host.docker.internal to host gateway for Linux compatibility
@@ -33,6 +34,11 @@ services:
         condition: service_healthy
       emqx:
         condition: service_started
+    healthcheck:
+      test: ["CMD", "true"]
+      interval: 10s
+      timeout: 5s
+      retries: 1
 
   emqx:
     container_name: hummingbot-broker
@@ -85,7 +91,7 @@ services:
     ports:
       - "15888:15888"
     env_file:
-      - .env
+      - .env.mcp
     depends_on:
       hummingbot-api:
         condition: service_healthy
@@ -94,6 +100,8 @@ services:
   condor:
     container_name: condor
     image: hummingbot/condor:latest
+    env_file:
+      - .env.condor
     environment:
       - BROKER_HOST=emqx
     depends_on:
