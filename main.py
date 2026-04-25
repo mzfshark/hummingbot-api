@@ -60,11 +60,11 @@ from routers import (  # noqa: E402
     websocket,
 )
 from services.accounts_service import AccountsService  # noqa: E402
+from services.backtesting_service import BacktestingService  # noqa: E402
 from services.bots_orchestrator import BotsOrchestrator  # noqa: E402
 from services.docker_service import DockerService  # noqa: E402
 from services.executor_service import ExecutorService  # noqa: E402
 from services.executor_ws_manager import ExecutorWebSocketManager  # noqa: E402
-from services.backtesting_service import BacktestingService  # noqa: E402
 from services.gateway_service import GatewayService  # noqa: E402
 from services.market_data_service import MarketDataService  # noqa: E402
 from services.trading_service import TradingService  # noqa: E402
@@ -399,3 +399,32 @@ async def root():
         "version": VERSION,
         "status": "running",
     }
+
+
+@app.get("/health")
+async def health(request: Request):
+    """Liveness/readiness endpoint for Docker and external orchestration."""
+    db_ok = False
+    mqtt_ok = False
+    db_manager = getattr(request.app.state, "db_manager", None)
+    bots_orchestrator = getattr(request.app.state, "bots_orchestrator", None)
+
+    if db_manager is not None:
+        db_ok = await db_manager.health_check()
+
+    if bots_orchestrator is not None:
+        mqtt_ok = bots_orchestrator.mqtt_manager.is_connected
+
+    overall_ok = db_ok and mqtt_ok
+    status_code = 200 if overall_ok else 503
+    return JSONResponse(
+        status_code=status_code,
+        content={
+            "status": "ok" if overall_ok else "degraded",
+            "version": VERSION,
+            "components": {
+                "database": "ok" if db_ok else "error",
+                "mqtt": "ok" if mqtt_ok else "error",
+            },
+        },
+    )

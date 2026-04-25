@@ -1,119 +1,148 @@
-# =============================================================================
-# Configuração Docker Compose para Hummingbot API, EMQX, PostgreSQL, MCP Server e Condor
-# =============================================================================
-#
-# Este arquivo define a infraestrutura para o ambiente MCP_Axodus_Trading com:
-# - Hummingbot API: Gerenciamento de bots de trading
-# - EMQX: Broker MQTT para comunicação em tempo real
-# - PostgreSQL: Banco de dados para armazenamento de dados
-# - MCP Server: Servidor MCP para orquestração
-# - Condor: Serviço de trading automatizado
-
 services:
   hummingbot-api:
     container_name: hummingbot-api
+    restart: unless-stopped
     build:
       context: .
       dockerfile: Dockerfile
+    env_file:
+      - .env.hummingbot
     ports:
       - "8000:8000"
     volumes:
       - ./bots:/hummingbot-api/bots
+      - ./data:/hummingbot-api/data
+      - ./logs:/hummingbot-api/logs
       - /var/run/docker.sock:/var/run/docker.sock
-    env_file:
-      - .env.hummingbot
     environment:
-      # Override specific values for Docker networking
-      - BROKER_HOST=emqx
-      - GATEWAY_URL=http://host.docker.internal:15888
+      BROKER_HOST: emqx
+      GATEWAY_URL: http://host.docker.internal:15888
     extra_hosts:
-      # Map host.docker.internal to host gateway for Linux compatibility
       - "host.docker.internal:host-gateway"
     depends_on:
       postgres:
         condition: service_healthy
       emqx:
-        condition: service_started
+        condition: service_healthy
     healthcheck:
-      test: ["CMD", "true"]
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()\""]
       interval: 10s
       timeout: 5s
-      retries: 1
+      retries: 12
+      start_period: 60s
+    networks:
+      - backend_network
+      - emqx_network
+      - mcp_network
 
   emqx:
     container_name: hummingbot-broker
-    image: emqx:5
+    image: emqx:5.8.8
     restart: unless-stopped
+    env_file:
+      - .env.mqtt
     environment:
-      - EMQX_NAME=emqx
-      - EMQX_HOST=node1.emqx.local
-      - EMQX_CLUSTER__DISCOVERY_STRATEGY=static
-      - EMQX_CLUSTER__STATIC__SEEDS=[emqx@node1.emqx.local]
-      - EMQX_LOADED_PLUGINS="emqx_recon,emqx_retainer,emqx_management,emqx_dashboard"
-      - EMQX_DASHBOARD__DEFAULT_PASSWORD=${MQTT_PASSWORD}
+      EMQX_NAME: emqx
+      EMQX_NODE__NAME: emqx@127.0.0.1
+      EMQX_DASHBOARD__DEFAULT_USERNAME: admin
     volumes:
-      - emqx-data:/opt/emqx/data
-      - emqx-log:/opt/emqx/log
-      - emqx-etc:/opt/emqx/etc
+      - ./volumes/emqx/data:/opt/emqx/data
+      - ./volumes/emqx/log:/opt/emqx/log
     ports:
       - "1883:1883"
       - "8083:8083"
+      - "18083:18083"
     healthcheck:
-      test: ["CMD", "nc", "-z", "localhost", "1883"]
-      interval: 5s
-      timeout: 25s
-      retries: 5
+      test: ["CMD-SHELL", "curl -fsS http://localhost:18083/status >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    networks:
+      - emqx_network
 
   postgres:
     container_name: hummingbot-postgres
     image: postgres:16
     restart: unless-stopped
-    environment:
-      - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_INITDB_ARGS=--encoding=UTF8
+    env_file:
+      - .env.postgres
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - ./volumes/postgres:/var/lib/postgresql/data
       - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    ports:
+      - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 12
+      start_period: 15s
+    networks:
+      - backend_network
 
-  # MCP Server service
   mcp-server:
     container_name: mcp-server
+    restart: unless-stopped
     build:
-      context: .
+      context: ../mcp-hummingbot
       dockerfile: Dockerfile
-    ports:
-      - "15888:15888"
     env_file:
       - .env.mcp
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./volumes/mcp:/root/.hummingbot_mcp
     depends_on:
       hummingbot-api:
         condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:3000/health >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    networks:
+      - mcp_network
 
-  # Condor service
   condor:
     container_name: condor
-    image: hummingbot/condor:latest
+    restart: unless-stopped
+    build:
+      context: ../condor
+      dockerfile: Dockerfile
     env_file:
       - .env.condor
-    environment:
-      - BROKER_HOST=emqx
+      - ../condor/.env
+    ports:
+      - "8088:8088"
+    volumes:
+      - ./condor/config.yml:/app/config.yml
+      - ./condor/data:/app/data
+      - ./condor/trading_agents:/app/trading_agents
     depends_on:
       hummingbot-api:
         condition: service_healthy
+      mcp-server:
+        condition: service_healthy
       emqx:
-        condition: service_started
+        condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8088/health >/dev/null || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 45s
+    networks:
+      - mcp_network
+      - emqx_network
 
-volumes:
-  emqx-data: { }
-  emqx-log: { }
-  emqx-etc: { }
-  postgres-data: { }
-  mcp-data: { }
-  condor-data: { }
+networks:
+  mcp_network:
+    name: axodus_mcp_network
+  emqx_network:
+    name: axodus_emqx_network
+  backend_network:
+    name: axodus_backend_network

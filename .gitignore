@@ -124,6 +124,8 @@ celerybeat.pid
 
 # Environments
 .env
+.env.*
+!.env.example
 .venv
 env/
 venv/
@@ -175,6 +177,16 @@ bots/conf/
 
 # Local MCP configuration (project-specific overrides)
 .mcp.json
+
+# Axodus runtime artifacts
+condor/config.yml
+condor/data/
+condor/logs/
+logs/
+ssl/
+volumes/
+data/market/
+data/trades/
 
 # IDE files
 .vscode/

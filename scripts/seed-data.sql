@@ -161,7 +161,7 @@ ON CONFLICT (config_key) DO NOTHING;
 
 -- Inserir uma conta padrão para testes se não existir nenhuma
 INSERT INTO account_states (account_name, connector_name)
-SELECT 'default_account', 'binance'
+SELECT 'master_account', 'binance'
 WHERE NOT EXISTS (SELECT 1 FROM account_states LIMIT 1);
 
 -- =============================================================================

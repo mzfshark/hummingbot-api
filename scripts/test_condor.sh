@@ -1,30 +1,38 @@
 #!/usr/bin/env bash
 
-# Test Condor (Telegram Bot) - verifica se o bot está respondendo e registra logs
-# Requer que o bot Condor esteja rodando e a variável BOT_TOKEN esteja definida
-
 set -euo pipefail
 
-BOT_TOKEN="${BOT_TOKEN:-YOUR_TELEGRAM_BOT_TOKEN}"
-CHAT_ID="${CHAT_ID:-YOUR_TELEGRAM_CHAT_ID}"
-MESSAGE="Teste de integração Condor $(date +%s)"
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT_DIR"
 
-# Envia mensagem via Telegram Bot API
-response=$(curl -s -X POST "https://api.telegram.org/bot${BOT_TOKEN}/sendMessage" \
-  -d chat_id="$CHAT_ID" \
-  -d text="$MESSAGE")
+set -a
+# shellcheck disable=SC1091
+source .env.condor
+if [[ -f ../condor/.env ]]; then
+  # shellcheck disable=SC1091
+  source ../condor/.env
+fi
+set +a
 
-ok=$(echo "$response" | jq -r '.ok')
+curl -fsS http://localhost:8088/health >/dev/null
+echo "✅ Condor respondeu no endpoint /health"
 
-if [[ "$ok" == "true" ]]; then
-  echo "✅ Mensagem enviada ao Telegram com sucesso"
+if [[ -n "${TELEGRAM_TOKEN:-}" && -n "${ADMIN_USER_ID:-}" ]]; then
+  response=$(curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage" \
+    -d chat_id="$ADMIN_USER_ID" \
+    -d text="Axodus Condor integration check $(date +%s)")
+  ok=$(echo "$response" | python3 -c 'import json,sys; print(json.load(sys.stdin).get("ok", False))')
+  if [[ "$ok" == "True" || "$ok" == "true" ]]; then
+    echo "✅ Mensagem de verificação enviada ao Telegram"
+  else
+    echo "❌ Condor está online, mas o envio ao Telegram falhou"
+    echo "$response"
+    exit 1
+  fi
 else
-  echo "❌ Falha ao enviar mensagem ao Telegram"
-  echo "Resposta: $response"
-  exit 1
+  echo "SKIP: TELEGRAM_TOKEN/ADMIN_USER_ID não configurados"
 fi
 
-# Opcional: verificar logs do container Condor (assume docker-compose service name 'condor')
 if command -v docker >/dev/null 2>&1; then
   echo "--- Logs recentes do serviço Condor ---"
   docker logs --tail 20 condor || true

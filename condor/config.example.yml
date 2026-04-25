@@ -1,0 +1,22 @@
+servers:
+  axodus-local:
+    host: hummingbot-api
+    port: 8000
+    username: admin
+    password: change_me_api_password
+default_server: axodus-local
+admin_id: 123456789
+users:
+  123456789:
+    user_id: 123456789
+    role: admin
+    created_at: 0
+    notes: Replace with your Telegram admin user id
+server_access:
+  axodus-local:
+    owner_id: 123456789
+    created_at: 0
+    shared_with: {}
+chat_defaults:
+  123456789: axodus-local
+version: 1

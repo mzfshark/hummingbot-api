@@ -1,0 +1,214 @@
+# =============================================================================
+# Example Grid Strategy - Configuração da Estratégia
+# =============================================================================
+# Este arquivo define os parâmetros para uma estratégia de Grid Trading
+# a ser executada pelo Condor e orquestrada pelo Trinity Agent.
+# =============================================================================
+
+# Identificação da Estratégia
+strategy:
+  name: "example_grid_strategy"
+  type: "grid"
+  version: "1.0.0"
+  description: "Estratégia de Grid Trading para mercados laterais"
+  author: "Trinity Agent"
+  created_at: "2026-04-25"
+
+# Configurações do Mercado
+market:
+  exchange: "binance"           # Exchange (binance, kucoin, etc.)
+  symbol: "BTC-USDT"            # Par de trading
+  quote_currency: "USDT"
+  base_currency: "BTC"
+  leverage: 1                    # Alavancagem (1 = sem alavancagem)
+  maker_fee: 0.001              # Taxa de maker (0.1%)
+  taker_fee: 0.001              # Taxa de taker (0.1%)
+
+# Parâmetros do Grid
+grid:
+  # Número de níveis do grid (quantas ordens acima e abaixo)
+  levels: 10
+  
+  # Orçamento total em quote currency (USDT)
+  budget: 1000.0
+  
+  # Preço inferior do grid (limite inferior)
+  price_lower: 45000.0
+  
+  # Preço superior do grid (limite superior)
+  price_upper: 55000.0
+  
+  # Quantidade por ordem (calculado automaticamente se não especificado)
+  # order_quantity: 0.001  # BTC por ordem
+  
+  # Espaçamento entre ordens (calculado automaticamente se não especificado)
+  # spacing: 1000.0  # USDT entre cada nível
+  
+  # Tipo de ordem
+  order_type: "limit"  # limit ou market
+  
+  # Preço atual de referência (opcional, senão usa ticker atual)
+  # reference_price: 50000.0
+
+# Gerenciamento de Risco
+risk_management:
+  # Stop Loss (percentual do orçamento)
+  stop_loss_pct: 5.0
+  
+  # Take Profit (percentual do orçamento)
+  take_profit_pct: 10.0
+  
+  # Máxima drawdown permitida (percentual)
+  max_drawdown_pct: 15.0
+  
+  # Máximo de ordens abertas simultâneas
+  max_open_orders: 20
+  
+  # Intervalo mínimo entre ordens (em segundos)
+  min_order_interval: 1.0
+  
+  # Se deve fazer rebalanceamento automático do grid
+  auto_rebalance: true
+  
+  # Frequência de rebalanceamento (em horas)
+  rebalance_interval_hours: 24
+
+# Configurações de Execução
+execution:
+  # Se a estratégia inicia automaticamente
+  auto_start: false
+  
+  # Intervalo de atualização de status (segundos)
+  status_update_interval: 5.0
+  
+  # Timeout para ordens (segundos)
+  order_timeout: 300.0
+  
+  # Se deve cancelar ordens abertas ao parar
+  cancel_orders_on_stop: true
+  
+  # Número máximo de tentativas de ordem
+  max_order_retries: 3
+  
+  # Delay entre tentativas (segundos)
+  retry_delay: 2.0
+
+# Notificações e Monitoramento
+notifications:
+  # Tópico MQTT para publicar status
+  mqtt_status_topic: "hummingbot/bots/example_grid_strategy/status"
+  
+  # Tópico MQTT para publicar ordens
+  mqtt_orders_topic: "hummingbot/bots/example_grid_strategy/orders"
+  
+  # Tópico MQTT para publicar trades
+  mqtt_trades_topic: "hummingbot/bots/example_grid_strategy/trades"
+  
+  # Se deve enviar notificações de alertas
+  send_alerts: true
+  
+  # Webhook para notificações externas (opcional)
+  # webhook_url: "https://hooks.example.com/trinity"
+
+# Indicadores Técnicos (Opcional)
+indicators:
+  # RSI (Relative Strength Index)
+  rsi:
+    enabled: true
+    period: 14
+    oversold: 30
+    overbought: 70
+  
+  # Bollinger Bands
+  bollinger:
+    enabled: true
+    period: 20
+    std_dev: 2.0
+  
+  # MACD
+  macd:
+    enabled: false
+    fast_period: 12
+    slow_period: 26
+    signal_period: 9
+
+# Configurações do Trinity Agent
+trinity:
+  # ID do bot para referência do Trinity
+  bot_id: "example_grid_strategy"
+  
+  # Se o Trinity deve gerenciar esta estratégia
+  managed_by_trinity: true
+  
+  # Ações automáticas do Trinity
+  auto_actions:
+    pause_on_high_volatility: true
+    adjust_grid_on_trend: false
+    emergency_stop_on_crash: true
+  
+  # Thresholds para ações automáticas
+  volatility_threshold: 5.0  # % de mudança em 1h
+  trend_strength_threshold: 0.7
+
+# Backtesting (Opcional - para validação antes de executar)
+backtest:
+  enabled: false
+  start_date: "2026-01-01"
+  end_date: "2026-04-01"
+  initial_balance: 1000.0
+  data_source: "binance"  # ou "csv", "database"
+
+# Configurações Avançadas
+advanced:
+  # Se deve usar order book para melhor pricing
+  use_order_book: false
+  
+  # Profundidade do order book
+  order_book_depth: 20
+  
+  # Slippage máximo aceitável (percentual)
+  max_slippage_pct: 0.5
+  
+  # Se deve fazer hedging automático
+  auto_hedge: false
+  
+  # Parâmetros de hedging
+  hedge_ratio: 1.0
+  hedge_exchange: "binance"
+  hedge_symbol: "BTC-USDT-PERP"
+
+# Logging
+logging:
+  level: "INFO"  # DEBUG, INFO, WARNING, ERROR
+  file: "logs/example_grid_strategy.log"
+  max_bytes: 10485760  # 10MB
+  backup_count: 5
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+
+# =============================================================================
+# Exemplos de Uso
+# =============================================================================
+# 1. Grid Conservador (menor risco):
+#    levels: 5
+#    budget: 500
+#    price_lower: 48000
+#    price_upper: 52000
+#    stop_loss_pct: 3.0
+#
+# 2. Grid Agressivo (maior risco/retorno):
+#    levels: 20
+#    budget: 2000
+#    price_lower: 40000
+#    price_upper: 60000
+#    stop_loss_pct: 10.0
+#
+# 3. Grid para Mercado em Alta:
+#    price_lower: 50000
+#    price_upper: 60000
+#    adjust_grid_on_trend: true
+#
+# 4. Grid para Mercado em Baixa:
+#    price_lower: 40000
+#    price_upper: 50000
+#    auto_rebalance: true
+# =============================================================================
