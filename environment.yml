@@ -33,3 +33,4 @@ dependencies:
       - psycopg2-binary
       - greenlet
       - pydantic-settings
+      - alembic
