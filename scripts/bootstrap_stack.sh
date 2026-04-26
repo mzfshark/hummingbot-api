@@ -94,6 +94,33 @@ if [[ -z "${ADMIN_USER_ID:-}" ]]; then
     fail "ADMIN_USER_ID não configurado em .env.condor"
 fi
 
+ensure_condor_token() {
+    # For Trinity automation we want a long-lived service token.
+    # If CONDOR_TOKEN is absent, generate one and persist it into .env.condor
+    if [[ -n "${CONDOR_TOKEN:-}" ]]; then
+        ok "CONDOR_TOKEN já configurado"
+        return 0
+    fi
+
+    warn "CONDOR_TOKEN não configurado. Gerando service token para automação (Trinity)..."
+    local token
+    token="$(python3 -c 'import secrets; print(secrets.token_hex(32))' 2>/dev/null || true)"
+    [[ -n "$token" ]] || fail "Falha ao gerar CONDOR_TOKEN (python3 indisponível?)"
+
+    if grep -q '^CONDOR_TOKEN=' .env.condor; then
+        # Replace existing (possibly empty) value
+        sed -i "s/^CONDOR_TOKEN=.*/CONDOR_TOKEN=${token}/" .env.condor
+    else
+        printf "\nCONDOR_TOKEN=%s\n" "$token" >> .env.condor
+    fi
+
+    # Export for current process
+    export CONDOR_TOKEN="$token"
+    ok "CONDOR_TOKEN gerado e salvo em .env.condor"
+}
+
+ensure_condor_token
+
 cat > condor/config.yml <<EOF
 servers:
   axodus-local:

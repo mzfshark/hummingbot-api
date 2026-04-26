@@ -27,6 +27,9 @@ Preencha estes arquivos antes do bootstrap:
 
 Use [.env.example](/opt/hummingbot-api/.env.example) como referência.
 
+Nota: o `bootstrap_stack.sh` agora garante que existe um `CONDOR_TOKEN` (service token) para automação.
+Se você não definir `CONDOR_TOKEN` em `.env.condor`, ele vai gerar um automaticamente e salvar no arquivo.
+
 ## Tradingbot local (estratégias v2 novas)
 
 Para desenvolver e deployar estratégias v2 novas (código), a suite espera um repo local do Tradingbot em:
