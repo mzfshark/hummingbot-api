@@ -17,6 +17,8 @@ services:
     environment:
       BROKER_HOST: emqx
       GATEWAY_URL: http://host.docker.internal:15888
+      # Host path for bind mounts used by Docker SDK when deploying bot containers
+      BOTS_PATH: /opt/hummingbot-api
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:

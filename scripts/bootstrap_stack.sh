@@ -122,6 +122,9 @@ EOF
 log "Validando pré-requisitos"
 ./scripts/validate_prerequisites.sh
 
+log "Buildando imagem local do Tradingbot"
+bash ./scripts/build_tradingbot_image.sh
+
 log "Subindo stack Docker"
 docker compose up -d --build
 

@@ -8,6 +8,7 @@
 - [ ] `http://localhost:18083/status` responde `200`
 - [ ] `http://localhost:8088/openapi.json` responde `200`
 - [ ] `docker exec hummingbot-postgres pg_isready ...` responde com sucesso
+- [ ] `docker image inspect hummingbot/hummingbot:development` responde com sucesso (ou `HBOT_IMAGE` configurada)
 
 ## Banco e seed
 
@@ -29,6 +30,7 @@
 - [ ] market data funciona em `POST /market-data/candles`
 - [ ] MCP HTTP está disponível em `http://localhost:3000/mcp`
 - [ ] Condor publica a API web em `http://localhost:8088/openapi.json`
+- [ ] deploy v2 sem `image` usa `HBOT_IMAGE` (default: `hummingbot/hummingbot:development`)
 
 ## Testes dependentes de segredo
 

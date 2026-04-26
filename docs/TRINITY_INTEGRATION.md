@@ -12,6 +12,11 @@ http://localhost:8000
 
 Credenciais: use `USERNAME` e `PASSWORD` de `.env.hummingbot`.
 
+Imagem default de deploy:
+
+- `HBOT_IMAGE` em `.env.hummingbot` define a imagem usada quando o deploy nao envia `image`.
+- Default recomendado: `hummingbot/hummingbot:development` (buildado localmente do repo em `TRADINGBOT_PATH`).
+
 Fluxos principais:
 
 1. Health:
@@ -113,3 +118,4 @@ http://localhost:8088/openapi.json
 - `TELEGRAM_TOKEN` configurado para o Condor
 - `ADMIN_USER_ID` configurado para o Condor
 - Gateway externo disponível em `http://host.docker.internal:15888` se você usar conectores DEX/Gateway
+- Para estrategias v2 novas (codigo): repo do Tradingbot clonado no host em `TRADINGBOT_PATH` (default: `/opt/tradingbot`) e imagem `HBOT_IMAGE` buildada localmente.

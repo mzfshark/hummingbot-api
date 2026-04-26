@@ -27,6 +27,16 @@ Preencha estes arquivos antes do bootstrap:
 
 Use [.env.example](/opt/hummingbot-api/.env.example) como referência.
 
+## Tradingbot local (estratégias v2 novas)
+
+Para desenvolver e deployar estratégias v2 novas (código), a suite espera um repo local do Tradingbot em:
+
+```bash
+git clone -b master https://github.com/Axodus/Tradingbot.git /opt/tradingbot
+```
+
+O bootstrap builda automaticamente a imagem `HBOT_IMAGE` (default: `hummingbot/hummingbot:development`) a partir desse path.
+
 ## Bootstrap recomendado
 
 ```bash
