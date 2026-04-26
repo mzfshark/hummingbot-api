@@ -98,6 +98,12 @@ http://localhost:3000/health
 
 O MCP local usa o repositório [mcp-hummingbot](/opt/mcp-hummingbot) com transporte HTTP habilitado para integração externa.
 
+Sessao (para harnesses REST):
+
+- Login: `POST http://localhost:3000/auth/login` com JSON `{"username": "...", "password": "..."}` retorna `session_id`.
+- Deploy v2 controllers: `POST http://localhost:3000/deploy/v2/controllers` com `Authorization: Bearer <session_id>` e payload do Hummingbot API.
+- Deploy v2 script: `POST http://localhost:3000/deploy/v2/script` com `Authorization: Bearer <session_id>` e payload do Hummingbot API.
+
 ## Condor
 
 Documentação HTTP do Condor:
@@ -111,6 +117,11 @@ Schema OpenAPI:
 ```text
 http://localhost:8088/openapi.json
 ```
+
+Autenticacao para chamadas `GET/POST /api/v1/...`:
+
+- Opcao 1 (interativo): gerar token via Telegram (`/web`) e trocar por JWT em `POST /api/v1/auth/token-login`.
+- Opcao 2 (automatizado): definir `CONDOR_TOKEN` no ambiente do Condor e chamar com `Authorization: Bearer <CONDOR_TOKEN>`.
 
 ## Pré-condições para testes de trading
 
