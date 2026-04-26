@@ -75,7 +75,8 @@ docker exec -i hummingbot-postgres psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" < 
 - MCP health: [http://localhost:3000/health](http://localhost:3000/health)
 - MCP endpoint: [http://localhost:3000/mcp](http://localhost:3000/mcp)
 - EMQX Dashboard: [http://localhost:18083](http://localhost:18083)
-- Condor health: [http://localhost:8088/health](http://localhost:8088/health)
+- Condor OpenAPI: [http://localhost:8088/openapi.json](http://localhost:8088/openapi.json)
+- Condor docs: [http://localhost:8088/docs](http://localhost:8088/docs)
 
 ## Scripts úteis
 

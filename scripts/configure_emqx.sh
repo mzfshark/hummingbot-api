@@ -79,7 +79,7 @@ replace_acl_rules() {
         return
     fi
 
-    [[ "$code" == "200" ]] || {
+    [[ "$code" == "200" || "$code" == "204" ]] || {
         echo "Falha ao atualizar ACL do usuário ${user_id} (HTTP ${code})" >&2
         cat /tmp/emqx-acl.json >&2
         exit 1

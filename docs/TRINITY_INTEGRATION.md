@@ -20,11 +20,13 @@ Fluxos principais:
    `GET /accounts/`
 3. Descobrir connectors:
    `GET /connectors/`
-4. Adicionar credenciais:
+4. Criar conta lógica para a API:
+   `POST /accounts/add-account?account_name={account_name}`
+5. Adicionar credenciais:
    `POST /accounts/add-credential/{account_name}/{connector_name}`
-5. Criar executor:
+6. Criar executor:
    `POST /executors/`
-6. Consultar market data:
+7. Consultar market data:
    `POST /market-data/candles`
 
 Exemplo em Python:
@@ -90,6 +92,20 @@ http://localhost:3000/health
 ```
 
 O MCP local usa o repositório [mcp-hummingbot](/opt/mcp-hummingbot) com transporte HTTP habilitado para integração externa.
+
+## Condor
+
+Documentação HTTP do Condor:
+
+```text
+http://localhost:8088/docs
+```
+
+Schema OpenAPI:
+
+```text
+http://localhost:8088/openapi.json
+```
 
 ## Pré-condições para testes de trading
 

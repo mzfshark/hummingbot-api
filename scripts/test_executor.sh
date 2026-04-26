@@ -15,7 +15,7 @@ ACCOUNT_NAME="${TEST_EXECUTOR_ACCOUNT:-integration_test}"
 CONNECTOR_NAME="${TEST_EXECUTOR_CONNECTOR:-binance_testnet}"
 TRADING_PAIR="${TEST_EXECUTOR_TRADING_PAIR:-BTC-USDT}"
 
-if ! curl -fsS -u "$USERNAME:$PASSWORD" "$API_URL/accounts/$ACCOUNT_NAME/credentials" | grep -q "$CONNECTOR_NAME"; then
+if ! curl -fsS -u "$USERNAME:$PASSWORD" "$API_URL/accounts/$ACCOUNT_NAME/credentials" 2>/dev/null | grep -q "$CONNECTOR_NAME"; then
   echo "SKIP: configure primeiro o connector ${CONNECTOR_NAME} para ${ACCOUNT_NAME}."
   exit 0
 fi

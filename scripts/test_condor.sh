@@ -14,8 +14,8 @@ if [[ -f ../condor/.env ]]; then
 fi
 set +a
 
-curl -fsS http://localhost:8088/health >/dev/null
-echo "✅ Condor respondeu no endpoint /health"
+curl -fsS http://localhost:8088/openapi.json >/dev/null
+echo "✅ Condor respondeu na API web"
 
 if [[ -n "${TELEGRAM_TOKEN:-}" && -n "${ADMIN_USER_ID:-}" ]]; then
   response=$(curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage" \
@@ -33,7 +33,7 @@ else
   echo "SKIP: TELEGRAM_TOKEN/ADMIN_USER_ID não configurados"
 fi
 
-if command -v docker >/dev/null 2>&1; then
-  echo "--- Logs recentes do serviço Condor ---"
-  docker logs --tail 20 condor || true
+if [[ "${SHOW_CONDOR_LOGS:-0}" == "1" ]] && command -v docker >/dev/null 2>&1; then
+  echo "--- Logs recentes do serviço Condor (tokens redigidos) ---"
+  docker logs --tail 20 condor 2>&1 | sed -E 's#(bot)[0-9]+:[A-Za-z0-9_-]+#\1***:***#g' || true
 fi

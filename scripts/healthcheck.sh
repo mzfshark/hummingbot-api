@@ -77,7 +77,7 @@ else
 fi
 
 section "6. Condor"
-if curl -fsS http://localhost:8088/health >/dev/null 2>&1; then
+if curl -fsS http://localhost:8088/openapi.json >/dev/null 2>&1; then
     ok "Condor respondeu"
 else
     err "Condor não respondeu"

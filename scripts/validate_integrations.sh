@@ -25,7 +25,7 @@ echo "✓ API e PostgreSQL compartilham schema esperado"
 curl -fsS http://localhost:3000/health >/dev/null
 echo "✓ MCP consegue alcançar a API"
 
-curl -fsS http://localhost:8088/health >/dev/null
-echo "✓ Condor expôs dashboard/health"
+curl -fsS http://localhost:8088/openapi.json >/dev/null
+echo "✓ Condor expôs a API web"
 
 echo "Validação concluída."

@@ -138,7 +138,7 @@ ok "Seed aplicado"
 
 log "Aguardando serviços auxiliares"
 wait_for_http "MCP Server" "http://localhost:3000/health"
-wait_for_http "Condor" "http://localhost:8088/health"
+wait_for_http "Condor" "http://localhost:8088/openapi.json"
 
 log "Executando healthcheck final"
 ./scripts/healthcheck.sh

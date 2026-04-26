@@ -6,7 +6,7 @@
 - [ ] `http://localhost:8000/health` responde `200`
 - [ ] `http://localhost:3000/health` responde `200`
 - [ ] `http://localhost:18083/status` responde `200`
-- [ ] `http://localhost:8088/health` responde `200`
+- [ ] `http://localhost:8088/openapi.json` responde `200`
 - [ ] `docker exec hummingbot-postgres pg_isready ...` responde com sucesso
 
 ## Banco e seed
@@ -28,7 +28,7 @@
 - [ ] autenticação HTTP da API funciona em `/accounts/`
 - [ ] market data funciona em `POST /market-data/candles`
 - [ ] MCP HTTP está disponível em `http://localhost:3000/mcp`
-- [ ] Condor publica dashboard em `http://localhost:8088`
+- [ ] Condor publica a API web em `http://localhost:8088/openapi.json`
 
 ## Testes dependentes de segredo
 
