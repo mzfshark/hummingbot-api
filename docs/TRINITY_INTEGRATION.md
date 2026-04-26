@@ -104,6 +104,22 @@ Sessao (para harnesses REST):
 - Deploy v2 controllers: `POST http://localhost:3000/deploy/v2/controllers` com `Authorization: Bearer <session_id>` e payload do Hummingbot API.
 - Deploy v2 script: `POST http://localhost:3000/deploy/v2/script` com `Authorization: Bearer <session_id>` e payload do Hummingbot API.
 
+Exemplo via CLI (host Linux):
+
+```bash
+cd /opt/hummingbot-api
+SESSION_ID="$(./scripts/mcp_login.sh)"
+
+curl -sS -X POST http://localhost:3000/deploy/v2/controllers \
+  -H "Authorization: Bearer ${SESSION_ID}" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "instance_name": "paper_bot_001",
+    "credentials_profile": "master_account",
+    "controllers_config": ["example_grid_controller"]
+  }'
+```
+
 ## Condor
 
 Documentação HTTP do Condor:
@@ -122,6 +138,13 @@ Autenticacao para chamadas `GET/POST /api/v1/...`:
 
 - Opcao 1 (interativo): gerar token via Telegram (`/web`) e trocar por JWT em `POST /api/v1/auth/token-login`.
 - Opcao 2 (automatizado): definir `CONDOR_TOKEN` no ambiente do Condor e chamar com `Authorization: Bearer <CONDOR_TOKEN>`.
+
+Exemplo (automatizado):
+
+```bash
+curl -sS http://localhost:8088/api/v1/servers \
+  -H "Authorization: Bearer ${CONDOR_TOKEN}"
+```
 
 ## Pré-condições para testes de trading
 

@@ -96,6 +96,7 @@ docker exec -i hummingbot-postgres psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" < 
 - [scripts/healthcheck.sh](/opt/hummingbot-api/scripts/healthcheck.sh)
 - [scripts/validate_integrations.sh](/opt/hummingbot-api/scripts/validate_integrations.sh)
 - [scripts/test_integration.sh](/opt/hummingbot-api/scripts/test_integration.sh)
+- [scripts/mcp_login.sh](/opt/hummingbot-api/scripts/mcp_login.sh) (gera `session_id` do MCP para chamadas REST)
 
 ## Observações práticas
 
