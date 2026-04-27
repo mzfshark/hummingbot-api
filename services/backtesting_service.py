@@ -114,6 +114,87 @@ class BacktestingService:
 
     async def _execute_backtest(self, config: dict) -> dict:
         """Core backtest execution logic shared by sync and async modes."""
+        def _sanitize_controller_config(controller: dict) -> dict:
+            """
+            Normalize common controller config variants so the backtesting engine
+            always receives valid CandlesConfig fields.
+
+            Some generated configs include `candles_config` entries with missing
+            `connector` / `trading_pair` (None), which causes pydantic validation
+            errors inside Hummingbot's CandlesConfig model.
+            """
+            if not isinstance(controller, dict):
+                return controller
+
+            def _null_to_empty(v):
+                return "" if v is None else v
+
+            # Normalize common top-level fields (some generators emit nulls)
+            if "connector_name" in controller:
+                controller["connector_name"] = _null_to_empty(controller.get("connector_name"))
+            if "connector" in controller:
+                controller["connector"] = _null_to_empty(controller.get("connector"))
+            if "trading_pair" in controller:
+                controller["trading_pair"] = _null_to_empty(controller.get("trading_pair"))
+
+            # Best-effort defaults from common top-level fields
+            default_connector = controller.get("connector_name") or controller.get("connector") or ""
+            default_pair = controller.get("trading_pair") or ""
+
+            candles = controller.get("candles_config")
+            if isinstance(candles, list):
+                fixed = []
+                for item in candles:
+                    if not isinstance(item, dict):
+                        fixed.append(item)
+                        continue
+                    # Support both naming conventions (and normalize nulls)
+                    c = item.get("connector")
+                    if c is None or c == "":
+                        c = item.get("connector_name") or default_connector
+                        item["connector"] = c
+                    p = item.get("trading_pair")
+                    if p is None or p == "":
+                        p = default_pair
+                        item["trading_pair"] = p
+                    fixed.append(item)
+                controller["candles_config"] = fixed
+
+            # If we still have explicit None values, fail early with a clear message
+            candles = controller.get("candles_config")
+            if isinstance(candles, list):
+                for idx, item in enumerate(candles):
+                    if isinstance(item, dict):
+                        if item.get("connector") in (None, "") or item.get("trading_pair") in (None, ""):
+                            raise ValueError(
+                                "Invalid controller config for backtesting: "
+                                f"candles_config[{idx}] missing connector/trading_pair. "
+                                "Ensure the controller config has connector_name + trading_pair, "
+                                "or candles_config entries with connector + trading_pair."
+                            )
+
+            # If the controller itself carries market identifiers, ensure they are present
+            if controller.get("connector_name") in (None, "") or controller.get("trading_pair") in (None, ""):
+                # Don't hard-fail if candles_config exists and is valid; only fail when both are missing.
+                has_valid_candles = False
+                candles = controller.get("candles_config")
+                if isinstance(candles, list):
+                    for item in candles:
+                        if (
+                            isinstance(item, dict)
+                            and item.get("connector") not in (None, "")
+                            and item.get("trading_pair") not in (None, "")
+                        ):
+                            has_valid_candles = True
+                            break
+                if not has_valid_candles:
+                    raise ValueError(
+                        "Invalid controller config for backtesting: missing connector_name/trading_pair. "
+                        "Preencha esses campos no controller config (YAML) ou forneca candles_config com connector+trading_pair."
+                    )
+
+            return controller
+
         if isinstance(config["config"], str):
             controller_config = self._engine.get_controller_config_instance_from_yml(
                 config_path=config["config"],
@@ -121,6 +202,7 @@ class BacktestingService:
                 controllers_module=settings.app.controllers_module
             )
         else:
+            config["config"] = _sanitize_controller_config(config["config"])
             controller_config = self._engine.get_controller_config_instance_from_dict(
                 config_data=config["config"],
                 controllers_module=settings.app.controllers_module
