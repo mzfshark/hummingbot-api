@@ -1,7 +1,6 @@
 version: "3.3"
 services:
-<<<<<<< HEAD
-=======
+
   dashboard:
     container_name: dashboard
     image: hummingbot/dashboard:latest
@@ -18,7 +17,7 @@ services:
       - ./pages:/home/dashboard/pages
     networks:
         - emqx-bridge
->>>>>>> refs/remotes/origin/main
+
   hummingbot-api:
     container_name: hummingbot-api
     restart: unless-stopped
